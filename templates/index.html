@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaWash Pro — Operational Queue & Manager Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 min-h-screen p-4 md:p-8">
+
+    <!-- Role Selection Portal Screen -->
+    <div id="role-selection-screen" class="max-w-4xl mx-auto py-12 px-4">
+        <div class="text-center space-y-3 mb-10">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-3xl mx-auto shadow-xl shadow-blue-500/20">
+                💧
+            </div>
+            <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">AquaWash Pro</h1>
+            <p class="text-sm font-medium text-slate-400">Select your destination portal to proceed</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div onclick="openPinModal('waiter')" class="bg-slate-900/80 border border-slate-800 hover:border-blue-500/50 p-6 rounded-2xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl flex flex-col items-center text-center space-y-4 group">
+                <div class="w-14 h-14 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition">
+                    🛎️
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Waiter / Attendant</h2>
+                    <p class="text-xs text-slate-400 mt-1">Car intake registration, active status updates & operational queue control.</p>
+                </div>
+                <span class="text-xs font-semibold text-blue-400 pt-2">Enter PIN →</span>
+            </div>
+
+            <div onclick="openCustomerModal()" class="bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 p-6 rounded-2xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl flex flex-col items-center text-center space-y-4 group">
+                <div class="w-14 h-14 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-2xl group-hover:bg-cyan-600 group-hover:text-white transition">
+                    🚗
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Customer Portal</h2>
+                    <p class="text-xs text-slate-400 mt-1">Track your vehicle's live wash status by plate number.</p>
+                </div>
+                <span class="text-xs font-semibold text-cyan-400 pt-2">Track Vehicle →</span>
+            </div>
+
+            <div onclick="openPinModal('manager')" class="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/50 p-6 rounded-2xl cursor-pointer transition transform hover:-translate-y-1 shadow-xl flex flex-col items-center text-center space-y-4 group">
+                <div class="w-14 h-14 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-2xl group-hover:bg-emerald-600 group-hover:text-white transition">
+                    📊
+                </div>
+                <div>
+                    <h2 class="text-lg font-bold text-white">Manager Portal</h2>
+                    <p class="text-xs text-slate-400 mt-1">View-only queue monitor, revenue metrics, ledger historical audits & expenses.</p>
+                </div>
+                <span class="text-xs font-semibold text-emerald-400 pt-2">Enter PIN →</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Workspace Dashboard -->
+    <div id="dashboard-screen" class="hidden max-w-7xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/80 backdrop-blur-md p-5 rounded-2xl border border-slate-800 shadow-xl gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center text-2xl shadow-lg shadow-blue-500/20">
+                    💧
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">AquaWash Pro</h1>
+                    <p id="portal-badge" class="text-xs font-semibold text-blue-400">Dashboard</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2.5 flex-wrap">
+                <button id="vehicle-type-btn" onclick="openTypeModal()" class="hidden bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+                    🚗 + Add Car Type
+                </button>
+                <button id="expense-btn" onclick="openExpenseModal()" class="hidden bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5">
+                    💸 Log Expense
+                </button>
+                <button onclick="logoutSession()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-600/25">
+                    🚪 Exit Portal
+                </button>
+                <button onclick="fetchDashboardData()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 p-2.5 rounded-xl border border-slate-700 transition" title="Refresh">
+                    🔄
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI Metrics Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="bg-slate-900/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-800/80 shadow-lg">
+                <p id="kpi-rev-label" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Today's Revenue</p>
+                <p id="metric-revenue" class="text-2xl font-black text-slate-500">🔒 Locked</p>
+            </div>
+            <div class="bg-slate-900/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-800/80 shadow-lg">
+                <p id="kpi-exp-label" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Expenses</p>
+                <p id="metric-expenses" class="text-2xl font-black text-slate-500">🔒 Locked</p>
+            </div>
+            <div class="bg-slate-900/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-800/80 shadow-lg">
+                <p id="kpi-profit-label" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Net Profit</p>
+                <p id="metric-profit" class="text-2xl font-black text-slate-500">🔒 Locked</p>
+            </div>
+            <div class="bg-slate-900/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-800/80 shadow-lg border-l-4 border-l-amber-500">
+                <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Today's Active Queue</p>
+                <p id="metric-active" class="text-2xl font-black text-amber-400">0</p>
+            </div>
+            <div class="bg-slate-900/60 backdrop-blur-sm p-5 rounded-2xl border border-slate-800/80 shadow-lg">
+                <p id="kpi-comp-label" class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Completed Cars</p>
+                <p id="metric-completed" class="text-2xl font-black text-slate-500">🔒 Locked</p>
+            </div>
+        </div>
+
+        <!-- Main Workspace Dynamic Grid -->
+        <div id="main-workspace-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Vehicle Intake Form (Only Visible to Waiter) -->
+            <div id="intake-section" class="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl h-fit space-y-4">
+                <h2 class="text-base font-bold text-slate-200 border-b border-slate-800 pb-3 flex items-center gap-2">
+                    <span>➕</span> Vehicle Intake
+                </h2>
+                
+                <form id="intake-form" onsubmit="handleIntake(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Plate Number</label>
+                        <input type="text" id="plate" placeholder="KAA 123X" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm font-bold uppercase text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Vehicle Type</label>
+                        <select id="vehicle_type" onchange="onVehicleTypeChange()" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Service Package</label>
+                        <input type="text" id="service_name" placeholder="Standard Body Wash" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Amount (KSh)</label>
+                            <input type="number" id="amount" placeholder="300" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-1.5">Payment Method</label>
+                            <select id="payment_method" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                                <option value="M-Pesa">M-Pesa</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5">Attendant / Washer</label>
+                        <input type="text" id="washer_name" placeholder="e.g. John" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition shadow-inner">
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-bold py-3.5 rounded-xl text-sm transition shadow-lg shadow-blue-600/25">
+                        Add Vehicle to Queue
+                    </button>
+                </form>
+            </div>
+
+            <!-- Operational Displays Area -->
+            <div id="queue-and-history-container" class="lg:col-span-2 space-y-6">
+                <!-- Live Operational Queue -->
+                <div class="bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                        <h2 class="text-base font-bold text-slate-200 flex items-center gap-2">
+                            <span>🚗</span> Active Operational Queue (Today)
+                        </h2>
+                        <span id="queue-mode-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full border"></span>
+                    </div>
+                    <div id="queue-container" class="space-y-3"></div>
+                </div>
+
+                <!-- Track Record Ledger & Date Inspector (Manager Only) -->
+                <div id="history-log-section" class="hidden bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-800 pb-3 gap-3">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-bold text-cyan-400 flex items-center gap-2">
+                                <span>📋</span> Master Track Record & Historical Ledger
+                            </h2>
+                            <span id="history-count-badge" class="text-xs bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 px-2.5 py-1 rounded-full font-bold">0 Cars</span>
+                        </div>
+
+                        <!-- Date Inspector Selector -->
+                        <div class="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+                            <label class="text-xs text-slate-400 font-semibold">Select Date:</label>
+                            <input type="date" id="history-date-picker" onchange="fetchHistory(this.value)" class="bg-transparent text-xs font-bold text-white focus:outline-none">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-slate-300">
+                            <thead class="text-[11px] uppercase bg-slate-950/80 text-slate-400 font-bold border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">Plate No</th>
+                                    <th class="p-3">Vehicle & Service</th>
+                                    <th class="p-3">Washer</th>
+                                    <th class="p-3">Payment</th>
+                                    <th class="p-3 text-right">Price Paid</th>
+                                    <th class="p-3 text-right">Completed At</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body" class="divide-y divide-slate-800/60"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Expense Ledger (Manager Only) -->
+                <div id="expense-log-section" class="hidden bg-slate-900/80 backdrop-blur-md p-6 rounded-2xl border border-slate-800 shadow-xl space-y-4">
+                    <h2 class="text-base font-bold text-emerald-400 border-b border-slate-800 pb-3 flex items-center gap-2">
+                        <span>🧾</span> Expense Ledger (Selected Date)
+                    </h2>
+                    <div id="expense-list" class="space-y-2"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal: PIN Authentication -->
+    <div id="pin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="pin-modal-title" class="text-base font-bold text-blue-400">Enter Access PIN</h3>
+                <button onclick="closePinModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <form onsubmit="handlePinSubmit(event)" class="space-y-4">
+                <input type="hidden" id="target-role">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Security PIN</label>
+                    <input type="password" id="role-pin" placeholder="••••" required maxlength="6" class="w-full text-center tracking-widest text-lg font-bold bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-white focus:border-blue-500 focus:outline-none">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closePinModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl text-xs font-bold transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-xs font-bold transition shadow-lg shadow-blue-600/25">Verify & Enter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Customer Lookup -->
+    <div id="customer-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-cyan-400">Customer Vehicle Tracking</h3>
+                <button onclick="closeCustomerModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <form onsubmit="handleCustomerTrack(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Enter Vehicle Plate Number</label>
+                    <input type="text" id="customer-plate-input" placeholder="e.g. KAA 123X" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm font-bold uppercase text-white focus:border-cyan-500 focus:outline-none">
+                </div>
+                <button type="submit" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl text-xs font-bold transition shadow-lg shadow-cyan-600/25">Track Status</button>
+            </form>
+            <div id="customer-result" class="hidden border-t border-slate-800 pt-4 space-y-3"></div>
+        </div>
+    </div>
+
+    <!-- Modal: Add New Vehicle Type -->
+    <div id="type-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-cyan-400">Add New Vehicle Type</h3>
+                <button onclick="closeTypeModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <form onsubmit="handleNewTypeSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Vehicle Category Name</label>
+                    <input type="text" id="new_type_name" placeholder="e.g. Pickup Truck / Lorry" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Default Standard Wash Price (KSh)</label>
+                    <input type="number" id="new_type_price" placeholder="600" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:border-cyan-500 focus:outline-none">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeTypeModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl text-xs font-bold transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl text-xs font-bold transition shadow-lg shadow-cyan-600/25">Save Type</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Log Expense -->
+    <div id="expense-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-emerald-400">Log Daily Expense</h3>
+                <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white">✕</button>
+            </div>
+            <form onsubmit="handleExpenseSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Category</label>
+                    <select id="exp_category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                        <option value="Soap/Chemicals">Soap & Cleaning Chemicals</option>
+                        <option value="Water Bill">Water Supply</option>
+                        <option value="Electricity">Electricity / Generator Fuel</option>
+                        <option value="Staff Wages">Staff Wages / Allowance</option>
+                        <option value="Maintenance">Equipment Repair / Maintenance</option>
+                        <option value="Other">Other Operational Cost</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Amount (KSh)</label>
+                    <input type="number" id="exp_amount" placeholder="350" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">Description (Optional)</label>
+                    <input type="text" id="exp_description" placeholder="Bought 20L detergent" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-3 text-sm text-white focus:border-emerald-500 focus:outline-none">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeExpenseModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-xl text-xs font-bold transition">Cancel</button>
+                    <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl text-xs font-bold transition shadow-lg shadow-emerald-600/25">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Engine -->
+    <script>
+        let currentRole = null;
+        let vehicleTypesData = [];
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('history-date-picker').value = todayStr;
+        });
+
+        function openPinModal(role) {
+            document.getElementById('target-role').value = role;
+            document.getElementById('pin-modal-title').innerText = role === 'manager' ? 'Manager Portal PIN' : 'Waiter Portal PIN';
+            document.getElementById('role-pin').value = '';
+            document.getElementById('pin-modal').classList.remove('hidden');
+        }
+        function closePinModal() { document.getElementById('pin-modal').classList.add('hidden'); }
+
+        function openCustomerModal() {
+            document.getElementById('customer-plate-input').value = '';
+            document.getElementById('customer-result').classList.add('hidden');
+            document.getElementById('customer-modal').classList.remove('hidden');
+        }
+        function closeCustomerModal() { document.getElementById('customer-modal').classList.add('hidden'); }
+
+        async function handlePinSubmit(e) {
+            e.preventDefault();
+            const role = document.getElementById('target-role').value;
+            const pin = document.getElementById('role-pin').value;
+
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ role, pin })
+            });
+
+            if (res.ok) {
+                closePinModal();
+                showDashboard();
+            } else {
+                alert("Invalid PIN credentials.");
+            }
+        }
+
+        async function handleCustomerTrack(e) {
+            e.preventDefault();
+            const plate = document.getElementById('customer-plate-input').value;
+            const res = await fetch('/api/customer/track', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ plate })
+            });
+            const data = await res.json();
+            const resultBox = document.getElementById('customer-result');
+            resultBox.classList.remove('hidden');
+
+            if (res.ok && data.found) {
+                const t = data.ticket;
+                const statusColors = {
+                    'QUEUED': 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+                    'WASHING': 'bg-blue-500/20 text-blue-300 border-blue-500/40',
+                    'DRYING': 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+                    'COMPLETED': 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                };
+
+                resultBox.innerHTML = `
+                    <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-black text-white">${t.plate}</span>
+                            <span class="text-xs uppercase font-extrabold px-3 py-1 rounded-full border ${statusColors[t.status]}">${t.status}</span>
+                        </div>
+                        <div class="text-xs text-slate-300 space-y-1">
+                            <p><strong>Package:</strong> ${t.service} (${t.type})</p>
+                            <p><strong>Cost:</strong> KSh ${t.amount}</p>
+                            <p><strong>Attendant:</strong> ${t.washer}</p>
+                            <p><strong>Registered At:</strong> ${t.time_in}</p>
+                        </div>
+                        ${t.status !== 'COMPLETED' ? `
+                            <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-800 text-center">
+                                <p class="text-xs text-amber-400 font-semibold">🚘 Vehicles Ahead in Queue: <span class="text-white font-bold text-sm">${t.cars_ahead}</span></p>
+                            </div>
+                        ` : `
+                            <div class="bg-emerald-950/50 p-2.5 rounded-lg border border-emerald-800 text-center">
+                                <p class="text-xs text-emerald-400 font-semibold">✨ Your vehicle is ready for pickup!</p>
+                            </div>
+                        `}
+                    </div>
+                `;
+            } else {
+                resultBox.innerHTML = `<div class="p-4 bg-rose-950/30 border border-rose-800/50 rounded-xl text-center text-xs text-rose-300">${data.message || 'Plate number not found'}</div>`;
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('role-selection-screen').classList.add('hidden');
+            document.getElementById('dashboard-screen').classList.remove('hidden');
+            loadVehicleTypes();
+            fetchDashboardData();
+        }
+
+        async function logoutSession() {
+            await fetch('/api/logout', { method: 'POST' });
+            document.getElementById('dashboard-screen').classList.add('hidden');
+            document.getElementById('role-selection-screen').classList.remove('hidden');
+        }
+
+        async function loadVehicleTypes(selectNewType = null) {
+            const res = await fetch('/api/vehicle-types');
+            vehicleTypesData = await res.json();
+            const select = document.getElementById('vehicle_type');
+            select.innerHTML = '';
+            
+            vehicleTypesData.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.name;
+                opt.textContent = `${t.name} (Base: KSh ${t.default_price})`;
+                opt.dataset.price = t.default_price;
+                select.appendChild(opt);
+            });
+
+            if (currentRole === 'manager') {
+                const customOpt = document.createElement('option');
+                customOpt.value = "ADD_NEW";
+                customOpt.textContent = "➕ [Add New Car Type...]";
+                select.appendChild(customOpt);
+            }
+
+            if (selectNewType) {
+                select.value = selectNewType;
+            }
+            onVehicleTypeChange();
+        }
+
+        function onVehicleTypeChange() {
+            const select = document.getElementById('vehicle_type');
+            if (select.value === "ADD_NEW") {
+                openTypeModal();
+                select.value = vehicleTypesData[0]?.name || "";
+            } else {
+                const selectedOpt = select.options[select.selectedIndex];
+                if (selectedOpt && selectedOpt.dataset.price) {
+                    document.getElementById('amount').value = selectedOpt.dataset.price;
+                }
+            }
+        }
+
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch('/api/queue');
+                const data = await res.json();
+
+                currentRole = data.summary.role;
+                if (!currentRole) {
+                    logoutSession();
+                    return;
+                }
+
+                document.getElementById('portal-badge').innerText = `${currentRole.toUpperCase()} PORTAL ACTIVE`;
+
+                const expenseBtn = document.getElementById('expense-btn');
+                const vehicleTypeBtn = document.getElementById('vehicle-type-btn');
+                const expenseLogSection = document.getElementById('expense-log-section');
+                const historyLogSection = document.getElementById('history-log-section');
+                const intakeSection = document.getElementById('intake-section');
+                const opsContainer = document.getElementById('queue-and-history-container');
+                const queueModeBadge = document.getElementById('queue-mode-badge');
+
+                if (currentRole === 'manager') {
+                    // Hide intake form for Manager, set Queue to View-Only mode indicator
+                    intakeSection.classList.add('hidden');
+                    opsContainer.className = "lg:col-span-3 space-y-6";
+
+                    queueModeBadge.innerText = "👁️ VIEW ONLY (MANAGER)";
+                    queueModeBadge.className = "text-[11px] font-bold px-2.5 py-1 rounded-full border bg-cyan-500/10 text-cyan-400 border-cyan-500/20";
+
+                    expenseBtn.classList.remove('hidden');
+                    vehicleTypeBtn.classList.remove('hidden');
+                    expenseLogSection.classList.remove('hidden');
+                    historyLogSection.classList.remove('hidden');
+
+                    const selectedDate = document.getElementById('history-date-picker').value;
+                    fetchHistory(selectedDate);
+                } else {
+                    // Show intake form for Waiter/Attendant, enable Interactive Mode
+                    intakeSection.classList.remove('hidden');
+                    opsContainer.className = "lg:col-span-2 space-y-6";
+
+                    queueModeBadge.innerText = "⚡ EDIT MODE (ATTENDANT)";
+                    queueModeBadge.className = "text-[11px] font-bold px-2.5 py-1 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20";
+
+                    expenseBtn.classList.add('hidden');
+                    vehicleTypeBtn.classList.add('hidden');
+                    expenseLogSection.classList.add('hidden');
+                    historyLogSection.classList.add('hidden');
+
+                    ['metric-revenue', 'metric-expenses', 'metric-profit', 'metric-completed'].forEach(id => {
+                        document.getElementById(id).innerText = "🔒 Restricted";
+                        document.getElementById(id).className = "text-2xl font-black text-slate-600";
+                    });
+                }
+
+                document.getElementById('metric-active').innerText = data.summary.active_count;
+
+                // Render Operational Queue
+                const container = document.getElementById('queue-container');
+                container.innerHTML = '';
+
+                if (data.queue.length === 0) {
+                    container.innerHTML = `<div class="text-center py-12 text-slate-500 text-sm font-medium">No vehicles currently in active queue.</div>`;
+                } else {
+                    data.queue.forEach(item => {
+                        const statusColors = {
+                            'QUEUED': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                            'WASHING': 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                            'DRYING': 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                        };
+
+                        const card = document.createElement('div');
+                        card.className = "bg-slate-950/60 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition hover:border-slate-700";
+                        
+                        // MANAGER VIEW: Render WITHOUT edit buttons
+                        // WAITER VIEW: Render WITH operational edit buttons
+                        card.innerHTML = `
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2.5">
+                                    <span class="font-black text-base text-white tracking-wide">${item.plate}</span>
+                                    <span class="text-[10px] uppercase font-extrabold px-2.5 py-0.5 rounded-full border ${statusColors[item.status] || ''}">${item.status}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 font-medium"><span class="text-cyan-300">${item.vehicle_type}</span> • ${item.service_name} • <span class="text-slate-200 font-bold">KSh ${item.amount}</span> (${item.payment_method})</p>
+                                <p class="text-[11px] text-slate-500">Attendant: <span class="text-slate-300">${item.washer_name}</span> | Time In: ${item.created_at}</p>
+                            </div>
+                            ${currentRole === 'waiter' ? `
+                                <div class="flex gap-1.5 w-full sm:w-auto">
+                                    ${item.status === 'QUEUED' ? `<button onclick="updateStatus(${item.id}, 'WASHING')" class="flex-1 sm:flex-initial text-xs bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white px-3 py-2 rounded-xl border border-blue-500/30 font-semibold transition">Start Wash</button>` : ''}
+                                    ${item.status === 'WASHING' ? `<button onclick="updateStatus(${item.id}, 'DRYING')" class="flex-1 sm:flex-initial text-xs bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white px-3 py-2 rounded-xl border border-purple-500/30 font-semibold transition">Start Drying</button>` : ''}
+                                    ${item.status === 'DRYING' || item.status === 'WASHING' ? `<button onclick="updateStatus(${item.id}, 'COMPLETED')" class="flex-1 sm:flex-initial text-xs bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white px-3 py-2 rounded-xl border border-emerald-500/30 font-semibold transition">Complete</button>` : ''}
+                                </div>
+                            ` : `
+                                <div class="text-[11px] text-slate-500 italic bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">
+                                    View-only
+                                </div>
+                            `}
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+            } catch (err) {
+                console.error("Error refreshing dashboard", err);
+            }
+        }
+
+        async function fetchHistory(selectedDate = null) {
+            const queryDate = selectedDate || document.getElementById('history-date-picker').value;
+            const res = await fetch(`/api/history?date=${queryDate}`);
+            if (res.ok) {
+                const data = await res.json();
+                const list = data.history;
+                const m = data.metrics;
+
+                const isToday = queryDate === new Date().toISOString().split('T')[0];
+                document.getElementById('kpi-rev-label').innerText = isToday ? "Today's Revenue" : `Revenue (${queryDate})`;
+                document.getElementById('kpi-exp-label').innerText = isToday ? "Today's Expenses" : `Expenses (${queryDate})`;
+                document.getElementById('kpi-profit-label').innerText = isToday ? "Today's Net Profit" : `Net Profit (${queryDate})`;
+                document.getElementById('kpi-comp-label').innerText = isToday ? "Completed Cars" : `Cars Washed (${queryDate})`;
+
+                document.getElementById('metric-revenue').innerText = `KSh ${m.revenue.toLocaleString()}`;
+                document.getElementById('metric-revenue').className = "text-2xl font-black text-emerald-400";
+
+                document.getElementById('metric-expenses').innerText = `KSh ${m.expenses.toLocaleString()}`;
+                document.getElementById('metric-expenses').className = "text-2xl font-black text-rose-400";
+
+                document.getElementById('metric-profit').innerText = `KSh ${m.profit.toLocaleString()}`;
+                document.getElementById('metric-profit').className = `text-2xl font-black ${m.profit >= 0 ? 'text-cyan-400' : 'text-rose-500'}`;
+
+                document.getElementById('metric-completed').innerText = m.count;
+                document.getElementById('metric-completed').className = "text-2xl font-black text-slate-200";
+
+                const tbody = document.getElementById('history-table-body');
+                document.getElementById('history-count-badge').innerText = `${list.length} Cars`;
+                tbody.innerHTML = '';
+
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">No completed wash records for ${queryDate}.</td></tr>`;
+                } else {
+                    list.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.className = "hover:bg-slate-950/40 transition";
+                        tr.innerHTML = `
+                            <td class="p-3 font-black text-white tracking-wide">${item.plate}</td>
+                            <td class="p-3"><span class="text-cyan-300 font-semibold">${item.vehicle_type}</span> — ${item.service_name}</td>
+                            <td class="p-3 text-slate-400">${item.washer_name}</td>
+                            <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 font-medium">${item.payment_method}</span></td>
+                            <td class="p-3 text-right font-extrabold text-emerald-400">+ KSh ${item.amount.toLocaleString()}</td>
+                            <td class="p-3 text-right text-slate-400">${item.completed_at}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                fetchExpenses(queryDate);
+            }
+        }
+
+        async function fetchExpenses(selectedDate) {
+            const res = await fetch(`/api/expenses?date=${selectedDate}`);
+            if (res.ok) {
+                const list = await res.json();
+                const container = document.getElementById('expense-list');
+                container.innerHTML = '';
+                if (list.length === 0) {
+                    container.innerHTML = `<p class="text-xs text-slate-500">No expenses recorded for this date.</p>`;
+                    return;
+                }
+                list.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = "bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs";
+                    el.innerHTML = `
+                        <div>
+                            <span class="font-bold text-slate-200">${item.category}</span>
+                            <span class="text-slate-400 block mt-0.5">${item.description || 'No description'}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="font-extrabold text-rose-400">- KSh ${item.amount}</span>
+                            <span class="text-slate-500 block mt-0.5">${item.created_at}</span>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+            }
+        }
+
+        function openTypeModal() { document.getElementById('type-modal').classList.remove('hidden'); }
+        function closeTypeModal() { document.getElementById('type-modal').classList.add('hidden'); }
+        function openExpenseModal() { document.getElementById('expense-modal').classList.remove('hidden'); }
+        function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
+
+        async function handleNewTypeSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById('new_type_name').value.trim(),
+                default_price: document.getElementById('new_type_price').value
+            };
+            const res = await fetch('/api/vehicle-types', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                closeTypeModal();
+                document.getElementById('new_type_name').value = '';
+                document.getElementById('new_type_price').value = '';
+                await loadVehicleTypes(payload.name);
+            } else {
+                alert(result.error || "Failed to add vehicle type");
+            }
+        }
+
+        async function handleExpenseSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                category: document.getElementById('exp_category').value,
+                amount: document.getElementById('exp_amount').value,
+                description: document.getElementById('exp_description').value
+            };
+            const res = await fetch('/api/expenses', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                closeExpenseModal();
+                document.getElementById('exp_amount').value = '';
+                document.getElementById('exp_description').value = '';
+                fetchDashboardData();
+            }
+        }
+
+        async function handleIntake(e) {
+            e.preventDefault();
+            const payload = {
+                plate: document.getElementById('plate').value,
+                vehicle_type: document.getElementById('vehicle_type').value,
+                service_name: document.getElementById('service_name').value,
+                amount: document.getElementById('amount').value,
+                payment_method: document.getElementById('payment_method').value,
+                washer_name: document.getElementById('washer_name').value
+            };
+            const res = await fetch('/api/tickets', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                document.getElementById('intake-form').reset();
+                onVehicleTypeChange();
+                fetchDashboardData();
+            }
+        }
+
+        async function updateStatus(ticketId, status) {
+            const res = await fetch(`/api/tickets/${ticketId}/status`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ status })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                alert(err.error || "Action failed");
+            }
+            fetchDashboardData();
+        }
+
+        fetchDashboardData();
+        setInterval(() => {
+            if (currentRole) fetchDashboardData();
+        }, 10000);
+    </script>
+</body>
+</html>

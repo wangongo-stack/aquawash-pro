@@ -335,8 +335,19 @@ def get_history():
         }
     })
 
+# --- DELETE INDIVIDUAL HISTORICAL RECORD (MANAGER ONLY) ---
+@app.route('/api/history/<int:ticket_id>', methods=['DELETE'])
+def delete_historical_record(ticket_id):
+    if session.get('role') != 'manager':
+        return jsonify({'error': 'Unauthorized. Only managers can delete records.'}), 403
+
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute("DELETE FROM tickets WHERE id = %s;", (ticket_id,))
+
+    return jsonify({'success': True, 'message': 'Record permanently deleted.'})
+
 # --- EXPENSES API ---
-@app.route('/api/expenses', methods=['GET', 'POST'])
+@app.route('/api/expenses', methods=['GET', 'POST', 'DELETE'])
 def expenses():
     if session.get('role') != 'manager':
         return jsonify({'error': 'Unauthorized'}), 403
@@ -348,6 +359,12 @@ def expenses():
                 INSERT INTO expenses (category, amount, description)
                 VALUES (%s, %s, %s);
             ''', (data['category'], float(data['amount']), data.get('description', '').strip()))
+        return jsonify({'success': True})
+
+    elif request.method == 'DELETE':
+        expense_id = request.args.get('id')
+        with get_db_cursor(commit=True) as cursor:
+            cursor.execute('DELETE FROM expenses WHERE id = %s;', (expense_id,))
         return jsonify({'success': True})
 
     target_date = request.args.get('date', date.today().isoformat())

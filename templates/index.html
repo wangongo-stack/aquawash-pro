@@ -25,7 +25,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3" id="auth-actions">
                 <button onclick="openPinModal('waiter')" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
                     Waiter Access
                 </button>
@@ -105,6 +105,42 @@
                 </table>
             </div>
         </section>
+
+        <!-- Section: Manager Master Track Record Ledger (Manager Only) -->
+        <section id="manager-ledger-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-amber-400">Master Track Record Ledger</h2>
+                    <p class="text-xs text-slate-400">Audit daily completed records and permanently remove individual entries.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="date" id="history-date-picker" onchange="loadHistory()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <button onclick="loadHistory()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300">Refresh Ledger</button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950/50 uppercase text-slate-500 font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="p-3">Plate</th>
+                            <th class="p-3">Vehicle Type</th>
+                            <th class="p-3">Service</th>
+                            <th class="p-3">Washer</th>
+                            <th class="p-3">Amount</th>
+                            <th class="p-3">Time Completed</th>
+                            <th class="p-3 text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="divide-y divide-slate-800/50">
+                        <tr>
+                            <td colspan="7" class="p-4 text-center text-slate-500">No completed records found for this date.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
     </main>
 
     <!-- Modal: Role Login -->
@@ -150,6 +186,8 @@
     <script>
         let currentRole = null;
 
+        document.getElementById('history-date-picker').value = new Date().toISOString().split('T')[0];
+
         function openPinModal(role) {
             currentRole = role;
             document.getElementById('login-role').value = role;
@@ -186,8 +224,13 @@
 
             const data = await res.json();
             if (res.ok) {
+                currentRole = data.role;
                 closePinModal();
                 loadQueue();
+                if (currentRole === 'manager') {
+                    document.getElementById('manager-ledger-section').classList.remove('hidden');
+                    loadHistory();
+                }
             } else {
                 alert(data.error || 'Authentication failed');
             }
@@ -247,6 +290,59 @@
                 `;
                 tbody.appendChild(tr);
             });
+        }
+
+        async function loadHistory() {
+            if (currentRole !== 'manager') return;
+            const targetDate = document.getElementById('history-date-picker').value;
+            const res = await fetch(`/api/history?date=${targetDate}`);
+            if (!res.ok) return;
+
+            const data = await res.json();
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+
+            if (data.history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No completed records found for ${targetDate}.</td></tr>`;
+                return;
+            }
+
+            data.history.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-900/50 transition';
+                tr.innerHTML = `
+                    <td class="p-3 font-semibold text-white uppercase">${t.plate}</td>
+                    <td class="p-3">${t.vehicle_type}</td>
+                    <td class="p-3">${t.service_name}</td>
+                    <td class="p-3">${t.washer_name}</td>
+                    <td class="p-3">KES ${t.amount}</td>
+                    <td class="p-3 text-slate-400">${t.completed_at ? new Date(t.completed_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'N/A'}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteSingleRecord(${t.id})" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[11px] px-2.5 py-1 rounded-lg transition">
+                            Delete
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function deleteSingleRecord(ticketId) {
+            if (!confirm('Delete this specific record from the ledger? Total revenue will automatically recalculate.')) {
+                return;
+            }
+
+            const res = await fetch(`/api/history/${ticketId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                loadHistory();
+                loadQueue();
+            } else {
+                alert(data.error || 'Failed to delete record.');
+            }
         }
 
         async function trackVehicle() {

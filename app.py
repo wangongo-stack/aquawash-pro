@@ -335,6 +335,17 @@ def get_history():
         }
     })
 
+# --- DELETE INDIVIDUAL HISTORICAL RECORD (MANAGER ONLY) ---
+@app.route('/api/history/<int:ticket_id>', methods=['DELETE'])
+def delete_historical_record(ticket_id):
+    if session.get('role') != 'manager':
+        return jsonify({'error': 'Unauthorized. Only managers can delete records.'}), 403
+
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute("DELETE FROM tickets WHERE id = %s;", (ticket_id,))
+
+    return jsonify({'success': True, 'message': 'Record permanently deleted.'})
+
 # --- EXPENSES API ---
 @app.route('/api/expenses', methods=['GET', 'POST'])
 def expenses():

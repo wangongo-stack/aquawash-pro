@@ -15,7 +15,6 @@ app.secret_key = os.environ.get('SECRET_KEY', 'default_fallback_key')
 DATABASE_URL = os.environ.get('DATABASE_URL')
 DEFAULT_PIN_WAITER = os.environ.get('PIN_WAITER', '1234')
 DEFAULT_PIN_MANAGER = os.environ.get('PIN_MANAGER', '9999')
-EMERGENCY_RESET_KEY = os.environ.get('EMERGENCY_RESET_KEY', 'super-secret-recovery-key')
 
 class CustomJSONProvider(DefaultJSONProvider):
     def default(self, obj):
@@ -142,22 +141,6 @@ def login():
 def logout():
     session.clear()
     return jsonify({'success': True})
-
-# --- EMERGENCY RECOVERY ENDPOINT ---
-@app.route('/api/admin/emergency-reset-pin', methods=['POST'])
-def emergency_reset_pin():
-    data = request.json or {}
-    secret = data.get('secret_key')
-    new_pin = str(data.get('new_pin', '')).strip()
-
-    if secret != EMERGENCY_RESET_KEY:
-        return jsonify({'error': 'Unauthorized recovery key'}), 403
-
-    if not new_pin or len(new_pin) < 4:
-        return jsonify({'error': 'New PIN must be at least 4 digits'}), 400
-
-    set_setting('PIN_MANAGER', new_pin)
-    return jsonify({'success': True, 'message': 'Manager PIN successfully reset.'})
 
 # --- MANAGER ADMIN API: PIN CHANGE & STAFF MANAGEMENT ---
 @app.route('/api/admin/change-pin', methods=['POST'])

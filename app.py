@@ -304,6 +304,17 @@ def update_status(ticket_id):
             
     return jsonify({'success': True})
 
+# --- DELETE TICKET RECORD (MANAGER ONLY) ---
+@app.route('/api/tickets/<int:ticket_id>', methods=['DELETE'])
+def delete_ticket(ticket_id):
+    if session.get('role') != 'manager':
+        return jsonify({'error': 'Unauthorized. Manager role required.'}), 403
+
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute('DELETE FROM tickets WHERE id = %s;', (ticket_id,))
+
+    return jsonify({'success': True, 'message': 'Ticket record deleted.'})
+
 # --- MANAGER HISTORICAL TRACK RECORD LEDGER ---
 @app.route('/api/history', methods=['GET'])
 def get_history():
@@ -355,6 +366,17 @@ def expenses():
         cursor.execute('SELECT * FROM expenses WHERE created_at::date = %s ORDER BY id DESC;', (target_date,))
         expense_list = cursor.fetchall()
     return jsonify(expense_list)
+
+# --- DELETE EXPENSE RECORD (MANAGER ONLY) ---
+@app.route('/api/expenses/<int:expense_id>', methods=['DELETE'])
+def delete_expense(expense_id):
+    if session.get('role') != 'manager':
+        return jsonify({'error': 'Unauthorized. Manager role required.'}), 403
+
+    with get_db_cursor(commit=True) as cursor:
+        cursor.execute('DELETE FROM expenses WHERE id = %s;', (expense_id,))
+
+    return jsonify({'success': True, 'message': 'Expense record deleted.'})
 
 # --- CUSTOMER TRACKING ENDPOINT ---
 @app.route('/api/customer/track', methods=['POST'])

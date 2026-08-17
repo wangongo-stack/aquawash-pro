@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AquaWash Pro — Operational Queue & Manager Portal</title>
+    <title>Wangongosh Pro — Operational Queue & Manager Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -229,7 +229,7 @@
 
     <!-- Modal: Staff Management & Security Settings (Manager Only) -->
     <div id="settings-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-6 shadow-2xl">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="text-base font-bold text-cyan-400 flex items-center gap-2">⚙️ Staff & Security Management</h3>
                 <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white">✕</button>
@@ -261,6 +261,20 @@
                     <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition">+ Add Waiter</button>
                 </form>
                 <div id="staff-list-container" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Danger Zone: Database Reset -->
+            <div class="space-y-3 border-t border-rose-900/50 pt-4">
+                <h4 class="text-xs font-bold text-rose-400 uppercase tracking-wider">⚠️ Danger Zone</h4>
+                <p class="text-[11px] text-slate-400">Permanently clear operational history to start fresh.</p>
+                <div class="flex gap-2">
+                    <button onclick="handleDatabaseReset('records_only')" class="flex-1 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 px-3 py-2 rounded-xl text-xs font-bold transition">
+                        Clear Tickets & Expenses
+                    </button>
+                    <button onclick="handleDatabaseReset('full')" class="flex-1 bg-rose-700 hover:bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold transition shadow-lg shadow-rose-700/30">
+                        Factory Reset Everything
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -475,6 +489,29 @@
             if (!confirm('Remove this waiter?')) return;
             const res = await fetch(`/api/admin/staff?id=${id}`, { method: 'DELETE' });
             if (res.ok) fetchStaff();
+        }
+
+        async function handleDatabaseReset(resetType) {
+            const confirmationMessage = resetType === 'full' 
+                ? "CRITICAL WARNING: This will permanently delete ALL tickets, expenses, staff list, and custom settings. Are you completely sure?" 
+                : "Are you sure you want to clear all operational ticket history and expense logs?";
+
+            if (!confirm(confirmationMessage)) return;
+
+            const res = await fetch('/api/admin/reset-database', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ reset_type: resetType })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                closeSettingsModal();
+                fetchDashboardData();
+            } else {
+                alert(data.error || "Failed to reset database.");
+            }
         }
 
         async function handleCustomerTrack(e) {

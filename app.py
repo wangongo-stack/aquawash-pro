@@ -142,7 +142,7 @@ def logout():
     session.clear()
     return jsonify({'success': True})
 
-# --- MANAGER ADMIN API: PIN CHANGE & STAFF MANAGEMENT ---
+# --- MANAGER ADMIN API: PIN CHANGE, STAFF & RESET ---
 @app.route('/api/admin/change-pin', methods=['POST'])
 def change_pin():
     if session.get('role') != 'manager':
@@ -191,6 +191,24 @@ def manage_staff():
         cursor.execute('SELECT * FROM staff ORDER BY name ASC;')
         staff_list = cursor.fetchall()
     return jsonify(staff_list)
+
+@app.route('/api/admin/reset-database', methods=['POST'])
+def reset_database():
+    if session.get('role') != 'manager':
+        return jsonify({'error': 'Unauthorized. Only managers can reset records.'}), 403
+
+    data = request.json or {}
+    reset_type = data.get('reset_type', 'records_only')
+
+    with get_db_cursor(commit=True) as cursor:
+        if reset_type == 'full':
+            cursor.execute('TRUNCATE TABLE tickets, expenses, staff, vehicle_types, settings RESTART IDENTITY;')
+        else:
+            cursor.execute('TRUNCATE TABLE tickets, expenses RESTART IDENTITY;')
+
+    init_db()
+
+    return jsonify({'success': True, 'message': 'Database records reset successfully!'})
 
 # --- VEHICLE TYPES API ---
 @app.route('/api/vehicle-types', methods=['GET', 'POST'])

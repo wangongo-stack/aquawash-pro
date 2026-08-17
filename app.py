@@ -115,7 +115,7 @@ def init_db():
 
 init_db()
 
-# --- AUTHENTICATION ENDPOINTS ---
+# --- AUTHENTICATION & SESSION ENDPOINTS ---
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -136,14 +136,14 @@ def login():
         session['role'] = 'manager'
         return jsonify({'success': True, 'role': 'manager'})
     
-    return jsonify({'error': 'Invalid PIN credentials'}), 401
+    return jsonify({'error': 'Invalid Security PIN'}), 401
 
 @app.route('/api/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'success': True})
 
-# --- EMERGENCY RECOVERY ENDPOINT ---
+# --- EMERGENCY RECOVERY ---
 @app.route('/api/admin/emergency-reset-pin', methods=['POST'])
 def emergency_reset_pin():
     data = request.json or {}
@@ -159,7 +159,7 @@ def emergency_reset_pin():
     set_setting('PIN_MANAGER', new_pin)
     return jsonify({'success': True, 'message': 'Manager PIN successfully reset.'})
 
-# --- MANAGER ADMIN API: PIN CHANGE & STAFF MANAGEMENT ---
+# --- MANAGER ADMIN: STAFF & SETTINGS ---
 @app.route('/api/admin/change-pin', methods=['POST'])
 def change_pin():
     if session.get('role') != 'manager':
@@ -209,7 +209,6 @@ def manage_staff():
         staff_list = cursor.fetchall()
     return jsonify(staff_list)
 
-# --- VEHICLE TYPES API ---
 @app.route('/api/vehicle-types', methods=['GET', 'POST'])
 def vehicle_types():
     if request.method == 'POST':
@@ -231,14 +230,12 @@ def vehicle_types():
         types = cursor.fetchall()
     return jsonify(types)
 
-# --- TICKETS & OPERATIONAL QUEUE API ---
+# --- TICKETS & QUEUE ---
 @app.route('/api/queue', methods=['GET'])
 def get_queue():
     role = session.get('role')
-    if not role:
-        return jsonify({'error': 'Unauthorized'}), 401
-    
     today = date.today().isoformat()
+    
     with get_db_cursor() as cursor:
         cursor.execute('''
             SELECT * FROM tickets 
@@ -291,7 +288,7 @@ def add_ticket():
 @app.route('/api/tickets/<int:ticket_id>/status', methods=['PUT'])
 def update_status(ticket_id):
     if session.get('role') != 'waiter':
-        return jsonify({'error': 'Manager is strictly restricted to View-Only on active queue'}), 403
+        return jsonify({'error': 'Only waiters can change queue status'}), 403
 
     data = request.json or {}
     new_status = data.get('status')
@@ -304,7 +301,7 @@ def update_status(ticket_id):
             
     return jsonify({'success': True})
 
-# --- MANAGER HISTORICAL TRACK RECORD LEDGER ---
+# --- HISTORY & SINGLE-RECORD DELETION ---
 @app.route('/api/history', methods=['GET'])
 def get_history():
     if session.get('role') != 'manager':
@@ -335,16 +332,15 @@ def get_history():
         }
     })
 
-# --- DELETE INDIVIDUAL HISTORICAL RECORD (MANAGER ONLY) ---
 @app.route('/api/history/<int:ticket_id>', methods=['DELETE'])
 def delete_historical_record(ticket_id):
     if session.get('role') != 'manager':
-        return jsonify({'error': 'Unauthorized. Only managers can delete records.'}), 403
+        return jsonify({'error': 'Unauthorized'}), 403
 
     with get_db_cursor(commit=True) as cursor:
         cursor.execute("DELETE FROM tickets WHERE id = %s;", (ticket_id,))
 
-    return jsonify({'success': True, 'message': 'Record permanently deleted.'})
+    return jsonify({'success': True, 'message': 'Record deleted successfully.'})
 
 # --- EXPENSES API ---
 @app.route('/api/expenses', methods=['GET', 'POST'])
@@ -382,7 +378,7 @@ def track_customer():
         row = cursor.fetchone()
 
         if not row:
-            return jsonify({'found': False, 'message': 'No vehicle found with that plate number.'})
+            return jsonify({'found': False, 'message': 'No vehicle found matching that plate.'})
 
         ticket = dict(row)
         cars_ahead = 0

@@ -15,135 +15,180 @@
     <!-- Header Navigation -->
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showRoleSelector()">
                 <div class="bg-cyan-500/10 p-2 rounded-xl border border-cyan-500/20 text-cyan-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                 </div>
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white">AquaWash Pro</h1>
-                    <p class="text-xs text-slate-400">Car Wash Operations</p>
+                    <p class="text-xs text-slate-400">Car Wash Portal</p>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-3" id="auth-actions">
-                <button onclick="openPinModal('waiter')" class="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
-                    Waiter Access
-                </button>
-                <button onclick="openPinModal('manager')" class="px-3.5 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-xs font-semibold text-white transition shadow-lg shadow-cyan-600/20">
-                    Manager Access
-                </button>
+            <div id="user-badge" class="hidden flex items-center gap-3">
+                <span id="active-role-label" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-cyan-400 border border-slate-700 capitalize">Role</span>
+                <button onclick="logout()" class="text-xs text-rose-400 hover:text-rose-300 font-medium">Exit Role</button>
             </div>
         </div>
     </header>
 
-    <!-- Main Content Area -->
+    <!-- Main Container -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 space-y-6">
-        
-        <!-- Live Dashboard Metrics Summary -->
-        <div id="metrics-bar" class="grid grid-cols-2 md:grid-cols-4 gap-4 hidden">
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                <p class="text-xs text-slate-400 font-medium">Active Queue</p>
-                <p id="metric-active" class="text-2xl font-bold text-cyan-400 mt-1">0</p>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                <p class="text-xs text-slate-400 font-medium">Completed Today</p>
-                <p id="metric-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                <p class="text-xs text-slate-400 font-medium">Today's Revenue</p>
-                <p id="metric-revenue" class="text-2xl font-bold text-white mt-1">KES 0</p>
-            </div>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                <p class="text-xs text-slate-400 font-medium">Net Earnings</p>
-                <p id="metric-profit" class="text-2xl font-bold text-amber-400 mt-1">KES 0</p>
-            </div>
-        </div>
 
-        <!-- Section: Public Customer Tracking -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <h2 class="text-sm font-semibold text-cyan-400 uppercase tracking-wider mb-2">Customer Self-Service Tracker</h2>
-            <p class="text-xs text-slate-400 mb-4">Check vehicle wash queue position in real time.</p>
+        <!-- Initial Landing Screen: 3 Portal Cards (Waiter, Customer, Manager) -->
+        <section id="role-selection-screen" class="py-12 space-y-8">
+            <div class="text-center max-w-xl mx-auto space-y-2">
+                <h2 class="text-3xl font-extrabold text-white">Select Access Portal</h2>
+                <p class="text-slate-400 text-sm">Choose your operational role to access the workspace.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+                <!-- Waiter Portal Card -->
+                <div onclick="selectRolePortal('waiter')" class="bg-slate-900 border border-slate-800 hover:border-cyan-500/50 rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1 shadow-xl group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-slate-950 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 002 0"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-cyan-400 transition">Waiter Portal</h3>
+                            <p class="text-xs text-slate-400 mt-1">Vehicle intake, queue management, and service completion logging.</p>
+                        </div>
+                    </div>
+                    <span class="mt-6 text-xs font-semibold text-cyan-400 flex items-center gap-1">Login as Waiter &rarr;</span>
+                </div>
+
+                <!-- Customer Portal Card -->
+                <div onclick="selectRolePortal('customer')" class="bg-slate-900 border border-slate-800 hover:border-emerald-500/50 rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1 shadow-xl group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-slate-950 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-emerald-400 transition">Customer Portal</h3>
+                            <p class="text-xs text-slate-400 mt-1">Self-service queue status and wash progress tracking by plate number.</p>
+                        </div>
+                    </div>
+                    <span class="mt-6 text-xs font-semibold text-emerald-400 flex items-center gap-1">Track Vehicle &rarr;</span>
+                </div>
+
+                <!-- Manager Portal Card -->
+                <div onclick="selectRolePortal('manager')" class="bg-slate-900 border border-slate-800 hover:border-amber-500/50 rounded-2xl p-6 flex flex-col justify-between cursor-pointer transition transform hover:-translate-y-1 shadow-xl group">
+                    <div class="space-y-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-slate-950 transition">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white group-hover:text-amber-400 transition">Manager Portal</h3>
+                            <p class="text-xs text-slate-400 mt-1">Financial metrics, master track record ledger, staff, and PIN control.</p>
+                        </div>
+                    </div>
+                    <span class="mt-6 text-xs font-semibold text-amber-400 flex items-center gap-1">Login as Manager &rarr;</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Customer View Screen -->
+        <section id="customer-screen" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl hidden max-w-2xl mx-auto space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h2 class="text-base font-bold text-emerald-400">Customer Wash Status Tracker</h2>
+                <button onclick="showRoleSelector()" class="text-xs text-slate-400 hover:text-white">✕ Back to Home</button>
+            </div>
+            <p class="text-xs text-slate-400">Enter your vehicle plate number to track queue position and wash status.</p>
+            <div class="flex gap-2">
+                <input type="text" id="track-plate" placeholder="Registration Plate (e.g., KDA 123X)" class="uppercase bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 w-full">
+                <button onclick="trackVehicle()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shrink-0">Search</button>
+            </div>
+            <div id="track-result" class="hidden p-4 bg-slate-950 border border-slate-800 rounded-xl"></div>
+        </section>
+
+        <!-- Waiter & Manager Operational Workspace -->
+        <div id="workspace-screen" class="space-y-6 hidden">
             
-            <div class="flex gap-2 max-w-md">
-                <input type="text" id="track-plate" placeholder="Enter Registration Plate (e.g. KDA 123X)" class="uppercase bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 w-full">
-                <button onclick="trackVehicle()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-700 transition shrink-0">Search</button>
-            </div>
-
-            <div id="track-result" class="mt-4 hidden p-4 bg-slate-950 border border-slate-800 rounded-xl"></div>
-        </section>
-
-        <!-- Section: Operational Queue -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
-            <div class="flex justify-between items-center mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Live Service Queue</h2>
-                    <p class="text-xs text-slate-400">Current active tickets in bay</p>
+            <!-- Dashboard Summary Metrics -->
+            <div id="metrics-bar" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Active Queue</p>
+                    <p id="metric-active" class="text-2xl font-bold text-cyan-400 mt-1">0</p>
                 </div>
-                <button id="btn-add-ticket" onclick="openTicketModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20">
-                    + New Vehicle Intake
-                </button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-950/50 uppercase text-slate-500 font-semibold border-b border-slate-800">
-                        <tr>
-                            <th class="p-3">Plate</th>
-                            <th class="p-3">Vehicle Type</th>
-                            <th class="p-3">Service</th>
-                            <th class="p-3">Washer</th>
-                            <th class="p-3">Amount</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="queue-table-body" class="divide-y divide-slate-800/50">
-                        <tr>
-                            <td colspan="7" class="p-4 text-center text-slate-500">Log in as Waiter or Manager to access queue.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Section: Manager Master Track Record Ledger (Manager Only) -->
-        <section id="manager-ledger-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl hidden">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-800 pb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-amber-400">Master Track Record Ledger</h2>
-                    <p class="text-xs text-slate-400">Audit daily completed records and permanently remove individual entries.</p>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Completed Today</p>
+                    <p id="metric-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <input type="date" id="history-date-picker" onchange="loadHistory()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
-                    <button onclick="loadHistory()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300">Refresh Ledger</button>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Today Revenue</p>
+                    <p id="metric-revenue" class="text-2xl font-bold text-white mt-1">KES 0</p>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <p class="text-xs text-slate-400 font-medium">Net Earnings</p>
+                    <p id="metric-profit" class="text-2xl font-bold text-amber-400 mt-1">KES 0</p>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-950/50 uppercase text-slate-500 font-semibold border-b border-slate-800">
-                        <tr>
-                            <th class="p-3">Plate</th>
-                            <th class="p-3">Vehicle Type</th>
-                            <th class="p-3">Service</th>
-                            <th class="p-3">Washer</th>
-                            <th class="p-3">Amount</th>
-                            <th class="p-3">Time Completed</th>
-                            <th class="p-3 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body" class="divide-y divide-slate-800/50">
-                        <tr>
-                            <td colspan="7" class="p-4 text-center text-slate-500">No completed records found for this date.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Active Queue Table -->
+            <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Live Service Queue</h2>
+                        <p class="text-xs text-slate-400">Active tickets in queue</p>
+                    </div>
+                    <button id="btn-add-ticket" onclick="openTicketModal()" class="hidden bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-lg shadow-emerald-600/20">
+                        + New Vehicle Intake
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-950/50 uppercase text-slate-500 font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Plate</th>
+                                <th class="p-3">Vehicle Type</th>
+                                <th class="p-3">Service</th>
+                                <th class="p-3">Washer</th>
+                                <th class="p-3">Amount</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="queue-table-body" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Manager Master Track Record Ledger -->
+            <section id="manager-ledger-section" class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-amber-400">Master Track Record Ledger</h2>
+                        <p class="text-xs text-slate-400">Audit completed records and permanently remove individual entries.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="date" id="history-date-picker" onchange="loadHistory()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                        <button onclick="loadHistory()" class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300">Refresh Ledger</button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs text-slate-300">
+                        <thead class="bg-slate-950/50 uppercase text-slate-500 font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">Plate</th>
+                                <th class="p-3">Vehicle Type</th>
+                                <th class="p-3">Service</th>
+                                <th class="p-3">Washer</th>
+                                <th class="p-3">Amount</th>
+                                <th class="p-3">Time Completed</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-slate-800/50"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
 
     </main>
 
-    <!-- Modal: Role Login -->
+    <!-- Modal: Authentication -->
     <div id="pin-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden flex items-center justify-center p-4 z-50">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
@@ -185,8 +230,23 @@
 
     <script>
         let currentRole = null;
-
         document.getElementById('history-date-picker').value = new Date().toISOString().split('T')[0];
+
+        function showRoleSelector() {
+            document.getElementById('role-selection-screen').classList.remove('hidden');
+            document.getElementById('customer-screen').classList.add('hidden');
+            document.getElementById('workspace-screen').classList.add('hidden');
+            document.getElementById('user-badge').classList.add('hidden');
+        }
+
+        function selectRolePortal(role) {
+            if (role === 'customer') {
+                document.getElementById('role-selection-screen').classList.add('hidden');
+                document.getElementById('customer-screen').classList.remove('hidden');
+            } else {
+                openPinModal(role);
+            }
+        }
 
         function openPinModal(role) {
             currentRole = role;
@@ -226,14 +286,28 @@
             if (res.ok) {
                 currentRole = data.role;
                 closePinModal();
+                
+                document.getElementById('role-selection-screen').classList.add('hidden');
+                document.getElementById('workspace-screen').classList.remove('hidden');
+                document.getElementById('user-badge').classList.remove('hidden');
+                document.getElementById('active-role-label').innerText = currentRole;
+
                 loadQueue();
                 if (currentRole === 'manager') {
                     document.getElementById('manager-ledger-section').classList.remove('hidden');
                     loadHistory();
+                } else {
+                    document.getElementById('manager-ledger-section').classList.add('hidden');
                 }
             } else {
                 alert(data.error || 'Authentication failed');
             }
+        }
+
+        async function logout() {
+            await fetch('/api/logout', { method: 'POST' });
+            currentRole = null;
+            showRoleSelector();
         }
 
         async function handleEmergencyReset(e) {
@@ -261,7 +335,6 @@
             if (!res.ok) return;
 
             const data = await res.json();
-            document.getElementById('metrics-bar').classList.remove('hidden');
             document.getElementById('metric-active').innerText = data.summary.active_count;
             document.getElementById('metric-completed').innerText = data.summary.completed_count;
             document.getElementById('metric-revenue').innerText = 'KES ' + data.summary.today_revenue;
@@ -269,6 +342,8 @@
 
             if (data.summary.role === 'waiter') {
                 document.getElementById('btn-add-ticket').classList.remove('hidden');
+            } else {
+                document.getElementById('btn-add-ticket').classList.add('hidden');
             }
 
             const tbody = document.getElementById('queue-table-body');

@@ -11,7 +11,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'default_fallback_key')
-app.config['APP_NAME'] = 'Wangongosh Pro'
+app.config['APP_NAME'] = 'utan Pro'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 DEFAULT_PIN_WAITER = os.environ.get('PIN_WAITER', '1234')

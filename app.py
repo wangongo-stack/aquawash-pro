@@ -11,6 +11,7 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'default_fallback_key')
+app.config['APP_NAME'] = 'Wangongosh Pro'
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 DEFAULT_PIN_WAITER = os.environ.get('PIN_WAITER', '1234')
@@ -24,6 +25,10 @@ class CustomJSONProvider(DefaultJSONProvider):
 
 app.json_provider_class = CustomJSONProvider
 app.json = CustomJSONProvider(app)
+
+@app.context_processor
+def inject_app_name():
+    return dict(app_name=app.config['APP_NAME'])
 
 @contextmanager
 def get_db_cursor(commit=False):
